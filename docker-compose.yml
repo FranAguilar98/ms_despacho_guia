@@ -1,15 +1,8 @@
 version: "3.8"
 
-# Compose de aplicación: los dos microservicios juntos (productor + consumidor).
-# Se levanta DESPUES de docker-compose-rabbitmq.yml (que crea la red "guias-red"
-# y el broker):
-#
-#   docker compose -f docker-compose-rabbitmq.yml up -d
-#   docker compose -f docker-compose.yml up --build -d
-
 services:
   ms-guias-productor:
-    build: ./ms-guias-productor
+    image: ${DOCKERHUB_USERNAME}/ms-guias-productor:latest
     container_name: ms-guias-productor
     ports:
       - "8080:8080"
@@ -19,6 +12,11 @@ services:
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
 
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
+
       AZURE_TENANT_NAME: ${AZURE_TENANT_NAME:-demoCloudNative}
       AZURE_USER_FLOW: ${AZURE_USER_FLOW:-B2C_1_acceso}
       AZURE_CLIENT_ID: ${AZURE_CLIENT_ID:-}
@@ -27,7 +25,7 @@ services:
     restart: unless-stopped
 
   ms-guias-consumidor:
-    build: ./ms-guias-consumidor
+    image: ${DOCKERHUB_USERNAME}/ms-guias-consumidor:latest
     container_name: ms-guias-consumidor
     ports:
       - "8081:8081"
@@ -47,6 +45,11 @@ services:
     networks:
       - guias-red
     restart: unless-stopped
+
+networks:
+  guias-red:
+    name: guias-red
+    external: true
 
 networks:
   guias-red:
