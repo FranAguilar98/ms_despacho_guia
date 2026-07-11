@@ -1,0 +1,54 @@
+version: "3.8"
+
+# Compose de aplicación: los dos microservicios juntos (productor + consumidor).
+# Se levanta DESPUES de docker-compose-rabbitmq.yml (que crea la red "guias-red"
+# y el broker):
+#
+#   docker compose -f docker-compose-rabbitmq.yml up -d
+#   docker compose -f docker-compose.yml up --build -d
+
+services:
+  ms-guias-productor:
+    build: ./ms-guias-productor
+    container_name: ms-guias-productor
+    ports:
+      - "8080:8080"
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+
+      AZURE_TENANT_NAME: ${AZURE_TENANT_NAME:-demoCloudNative}
+      AZURE_USER_FLOW: ${AZURE_USER_FLOW:-B2C_1_acceso}
+      AZURE_CLIENT_ID: ${AZURE_CLIENT_ID:-}
+    networks:
+      - guias-red
+    restart: unless-stopped
+
+  ms-guias-consumidor:
+    build: ./ms-guias-consumidor
+    container_name: ms-guias-consumidor
+    ports:
+      - "8081:8081"
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+
+      ORACLE_DB_URL: ${ORACLE_DB_URL:-}
+      ORACLE_DB_USER: ${ORACLE_DB_USER:-}
+      ORACLE_DB_PASS: ${ORACLE_DB_PASS:-}
+
+      AZURE_TENANT_NAME: ${AZURE_TENANT_NAME:-demoCloudNative}
+      AZURE_USER_FLOW: ${AZURE_USER_FLOW:-B2C_1_acceso}
+      AZURE_CLIENT_ID: ${AZURE_CLIENT_ID:-}
+    networks:
+      - guias-red
+    restart: unless-stopped
+
+networks:
+  guias-red:
+    name: guias-red
+    external: true
