@@ -30,9 +30,7 @@ jobs:
           context: ./ms-guias-consumidor
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/ms-guias-consumidor:latest
-
-      # Copia solo los archivos docker-compose (las imagenes ya estan en Docker
-      # Hub, no hace falta mandar el codigo fuente al EC2).
+          
       - name: Copiar docker-compose al EC2
         uses: appleboy/scp-action@v0.1.7
         with:
