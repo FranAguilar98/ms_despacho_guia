@@ -1,0 +1,75 @@
+name: CI/CD - Build & Push a Docker Hub + Deploy a EC2
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Login a Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build y Push - ms-guias-productor
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ms-guias-productor
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ms-guias-productor:latest
+
+      - name: Build y Push - ms-guias-consumidor
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ms-guias-consumidor
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ms-guias-consumidor:latest
+
+      # Copia solo los archivos docker-compose (las imagenes ya estan en Docker
+      # Hub, no hace falta mandar el codigo fuente al EC2).
+      - name: Copiar docker-compose al EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose-rabbitmq.yml,docker-compose.yml"
+          target: "/home/ec2-user/guias-despacho"
+
+      - name: Deploy en EC2 (pull + up)
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ec2-user/guias-despacho
+
+            export DOCKERHUB_USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
+
+            export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+            export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+            export AWS_SESSION_TOKEN="${{ secrets.AWS_SESSION_TOKEN }}"
+            export AWS_DEFAULT_REGION="us-east-1"
+
+            export AZURE_TENANT_NAME="${{ secrets.AZURE_TENANT_NAME }}"
+            export AZURE_USER_FLOW="${{ secrets.AZURE_USER_FLOW }}"
+            export AZURE_CLIENT_ID="${{ secrets.AZURE_CLIENT_ID }}"
+
+            export ORACLE_DB_URL="${{ secrets.ORACLE_DB_URL }}"
+            export ORACLE_DB_USER="${{ secrets.ORACLE_DB_USER }}"
+            export ORACLE_DB_PASS="${{ secrets.ORACLE_DB_PASS }}"
+
+            docker-compose -f docker-compose-rabbitmq.yml up -d
+
+            docker-compose -f docker-compose.yml pull
+            docker-compose -f docker-compose.yml up -d
+
+            docker ps
+            echo "✅ Deploy completado"
