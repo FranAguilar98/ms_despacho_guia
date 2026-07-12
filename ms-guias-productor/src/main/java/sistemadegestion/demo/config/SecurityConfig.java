@@ -18,7 +18,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+// @EnableMethodSecurity
 @Profile("!dev")
 public class SecurityConfig {
 
@@ -39,8 +39,9 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/actuator/health").permitAll()
-                .requestMatchers(HttpMethod.GET, "/guias/*/object").hasAnyRole("DESCARGA", "ADMIN")
-                .requestMatchers("/guias/**").hasRole("ADMIN")
+                // .requestMatchers(HttpMethod.GET, "/guias/*/object").hasAnyRole("DESCARGA", "ADMIN")
+                // .requestMatchers("/guias/**").hasRole("ADMIN")
+                .requestMatchers("/guias/**").authenticated()
                 .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2
