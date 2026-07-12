@@ -16,7 +16,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+// @EnableMethodSecurity
 public class SecurityConfig {
 
     @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
@@ -36,8 +36,9 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/actuator/health").permitAll()
-                .requestMatchers("/api/consumo/guias/**").hasRole("ADMIN")
-                .requestMatchers("/rabbit-listener/**").hasRole("ADMIN")
+                // .requestMatchers("/api/consumo/guias/**").hasRole("ADMIN")
+                // .requestMatchers("/rabbit-listener/**").hasRole("ADMIN")
+                .requestMatchers("/api/consumo/guias/**", "/rabbit-listener/**").authenticated()
                 .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2
