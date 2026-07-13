@@ -17,7 +17,8 @@ public class ProducirGuiaServiceImpl implements ProducirGuiaService {
 
     public ProducirGuiaServiceImpl(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
-    
+    }
+
     @Override
     public void enviarGuia(GuiaDespachoMensajeDTO guia) {
         try {
