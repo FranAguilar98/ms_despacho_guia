@@ -36,9 +36,6 @@ public class SecurityConfig {
     @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
     private String b2cJwkSetUri;
 
-    // Emisor de tokens APP-ONLY (Client Credentials), siempre vía AAD estándar,
-    // nunca vía b2clogin.com/policy. Azure AD B2C no soporta client credentials
-    // a través del user flow: el token siempre lo emite login.microsoftonline.com.
     @Value("${azure.tenant-id:bffd2098-bc19-42ec-9208-0941f3424faf}")
     private String tenantId;
 
@@ -64,12 +61,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /**
-     * Resuelve dinámicamente qué JwtDecoder usar según el "iss" (issuer) que venga
-     * en el token, sin verificar todavía la firma. Así soportamos en simultáneo:
-     *  - Tokens de usuario (Authorization Code) emitidos por la policy B2C.
-     *  - Tokens app-only (Client Credentials) emitidos por el tenant AAD estándar.
-     */
     @Bean
     public AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver() {
         String aadIssuerUri = "https://login.microsoftonline.com/" + tenantId + "/v2.0";
@@ -102,11 +93,6 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
-        // Mismo enfoque que en el instructivo del docente: JwtGrantedAuthoritiesConverter
-        // estándar, apuntando al nombre real del custom claim en Azure AD B2C.
-        // Aunque el valor llega como string simple (ej: "ADMIN", no un array), Spring
-        // lo soporta igual: si el claim es un String sin espacios, lo trata como
-        // una lista de un solo elemento.
         JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
         grantedAuthoritiesConverter.setAuthorityPrefix("ROLE_");
         grantedAuthoritiesConverter.setAuthoritiesClaimName("extension_rolAcceso");
