@@ -10,10 +10,6 @@ import lombok.ToString;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * DTO que viaja por RabbitMQ (cola.guias.despacho). Mismo estilo que los DTO
- * del profesor (Lombok @Data + @AllArgsConstructor + @NoArgsConstructor).
- */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
