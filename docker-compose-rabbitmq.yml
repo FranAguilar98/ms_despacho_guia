@@ -1,18 +1,5 @@
 version: "3.8"
 
-# Compose de infraestructura (independiente de los microservicios), igual al
-# patrón del docker-compose-rabbitmq.yml original del repo. Se levanta primero:
-#
-#   docker compose -f docker-compose-rabbitmq.yml up -d
-#
-# El exchange, las colas y los bindings (incluido el Dead Letter Exchange) ya
-# NO se cargan desde un definitions.json: se declaran en Java con @Bean
-# (RabbitMQConfig de cada microservicio), igual que el ejemplo del profesor.
-# Este compose solo levanta el broker "pelado".
-#
-# Crea la red "guias-red" con nombre fijo para que ms-guias-productor y
-# ms-guias-consumidor (cada uno con su propio docker-compose.yml) se conecten
-# a este mismo RabbitMQ sin tener que estar en el mismo archivo compose.
 
 services:
   rabbitmq:
