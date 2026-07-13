@@ -15,25 +15,6 @@ import sistemadegestion.demo.service.ConsumirGuiaService;
 import java.io.IOException;
 import java.time.LocalDateTime;
 
-/**
- * Mismo patrón que ConsumirMensajeServiceImpl del profesor. El listener
- * (id = LISTENER_ID) no arranca solo (autoStartup=false): lo enciende/apaga
- * RabbitListenerControlServiceImpl a través de RabbitListenerEndpointRegistry,
- * expuesto por RabbitListenerAdminController — ese es el "endpoint adicional"
- * que exige el enunciado para consumir la cola 1.
- *
- * Si falla el guardado en Oracle se hace basicNack(requeue=false); como la
- * cola tiene configurado x-dead-letter-exchange (RabbitMQConfig), RabbitMQ
- * reenvía automáticamente el mensaje a cola.guias.despacho.error. No hay
- * republicación manual en Java.
- *
- * Idempotencia: numeroGuia es el identificador único del mensaje. Antes de
- * insertar, procesarGuia() revisa si ya existe una guía procesada con ese
- * número (findByNumeroGuia); si ya se procesó, no la vuelve a guardar. Esto
- * evita duplicados si RabbitMQ redelivera un mensaje ya procesado (por
- * ejemplo, si el ack se pierde por un corte de red justo después de guardar
- * en Oracle pero antes de confirmarle al broker).
- */
 @Slf4j
 @Service
 public class ConsumirGuiaServiceImpl implements ConsumirGuiaService {
@@ -48,12 +29,6 @@ public class ConsumirGuiaServiceImpl implements ConsumirGuiaService {
         this.messageConverter = messageConverter;
     }
 
-    /**
-     * Idempotencia: numeroGuia es el identificador único del mensaje. Si ya
-     * existe una guía procesada con ese numeroGuia, no se vuelve a insertar
-     * (evita duplicados si RabbitMQ redelivera el mensaje, por ejemplo porque
-     * el ack se perdió por un corte de red después de guardar en Oracle).
-     */
     @Override
     public GuiaDespachoProcesada procesarGuia(GuiaDespachoMensajeDTO guia) {
         var existente = repository.findByNumeroGuia(guia.getNumeroGuia());
