@@ -4,10 +4,6 @@ import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
-/**
- * Tabla distinta a la usada en sumativas anteriores. La llena exclusivamente
- * este microservicio consumidor al drenar la cola 1 de RabbitMQ.
- */
 @Entity
 @Table(name = "guia_despacho_procesada")
 public class GuiaDespachoProcesada {
