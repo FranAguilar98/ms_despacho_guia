@@ -92,7 +92,6 @@ public class SecurityConfig {
         grantedAuthoritiesConverter.setAuthoritiesClaimName("extension_rolAcceso");
 
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(converter -> java.util.List.of());
         converter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
         return converter;
     }
