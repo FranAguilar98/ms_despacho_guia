@@ -46,7 +46,7 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/actuator/health").permitAll()
-                .requestMatchers("/api/consumo/guias/**", "/rabbit-listener/**", "/rabbit-admin/**").authenticated()
+                .requestMatchers("/api/consumo/guias/**", "/rabbit-listener/**").authenticated()
                 .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2
@@ -92,6 +92,7 @@ public class SecurityConfig {
         grantedAuthoritiesConverter.setAuthoritiesClaimName("extension_rolAcceso");
 
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(converter -> java.util.List.of());
         converter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
         return converter;
     }
