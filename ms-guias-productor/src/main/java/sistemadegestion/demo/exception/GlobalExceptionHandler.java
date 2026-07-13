@@ -175,6 +175,21 @@ public class GlobalExceptionHandler {
 	}
 
 	
+	@ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+	public ResponseEntity<ErrorResponse> handleSpringSecurityAccessDeniedException(
+			org.springframework.security.access.AccessDeniedException ex, WebRequest request) {
+
+		log.warn("Acceso denegado por falta de rol/permiso: {}", ex.getMessage());
+
+		ErrorResponse error = ErrorResponse.builder().timestamp(LocalDateTime.now())
+				.status(HttpStatus.FORBIDDEN.value()).error("Forbidden")
+				.message("No tiene el rol necesario para acceder a este recurso")
+				.details(ex.getMessage()).path(getPath(request)).build();
+
+		return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+	}
+
+
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, WebRequest request) {
 
