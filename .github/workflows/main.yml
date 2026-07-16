@@ -1,14 +1,12 @@
 name: CI/CD - Build & Push a Docker Hub + Deploy a EC2
-
 on:
   push:
     branches: [ main ]
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout código
+      - name: Checkout codigo
         uses: actions/checkout@v4
 
       - name: Login a Docker Hub
@@ -24,13 +22,21 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/ms-guias-productor:latest
 
+      - name: Reconstruir wallet Oracle para consumidor
+        run: |
+          mkdir -p ms-guias-consumidor/wallet
+          echo "${{ secrets.ORACLE_WALLET_BASE64 }}" | base64 -d > wallet.zip
+          unzip -o wallet.zip -d ms-guias-consumidor/wallet
+          rm wallet.zip
+          sed -i 's|DIRECTORY=".*"|DIRECTORY="/app/wallet"|' ms-guias-consumidor/wallet/sqlnet.ora
+
       - name: Build y Push - ms-guias-consumidor
         uses: docker/build-push-action@v5
         with:
           context: ./ms-guias-consumidor
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/ms-guias-consumidor:latest
-          
+
       - name: Copiar docker-compose al EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -48,26 +54,19 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /home/ec2-user/guias-despacho
-
             export DOCKERHUB_USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
-
             export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
             export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
             export AWS_SESSION_TOKEN="${{ secrets.AWS_SESSION_TOKEN }}"
             export AWS_DEFAULT_REGION="us-east-1"
-
             export AZURE_TENANT_NAME="${{ secrets.AZURE_TENANT_NAME }}"
             export AZURE_USER_FLOW="${{ secrets.AZURE_USER_FLOW }}"
             export AZURE_CLIENT_ID="${{ secrets.AZURE_CLIENT_ID }}"
-
             export ORACLE_DB_URL="${{ secrets.ORACLE_DB_URL }}"
             export ORACLE_DB_USER="${{ secrets.ORACLE_DB_USER }}"
             export ORACLE_DB_PASS="${{ secrets.ORACLE_DB_PASS }}"
-
             docker-compose -f docker-compose-rabbitmq.yml up -d
-
             docker-compose -f docker-compose.yml pull
             docker-compose -f docker-compose.yml up -d
-
             docker ps
-            echo "✅ Deploy completado"
+            echo "Deploy completado"
