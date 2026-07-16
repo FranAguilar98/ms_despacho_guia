@@ -2,3 +2,5 @@ target/
 .vscode/
 *.class
 *.jar
+
+ms-guias-consumidor/wallet/
