@@ -61,6 +61,13 @@ public class ConsumirGuiaServiceImpl implements ConsumirGuiaService {
     )
     public void recibirGuiaConAckManual(Message mensaje, Channel canal) throws IOException {
         long deliveryTag = mensaje.getMessageProperties().getDeliveryTag();
+        
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+        }
+
         try {
             GuiaDespachoMensajeDTO guia = (GuiaDespachoMensajeDTO) messageConverter.fromMessage(mensaje);
             log.info("Mensaje recibido de cola 1: {}", guia.getNumeroGuia());
